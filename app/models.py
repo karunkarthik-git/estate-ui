@@ -7,6 +7,9 @@ class User(Base):
     email = Column(String(255), primary_key=True, index=True)
     name = Column(String(255), nullable=False)
     password = Column(String(255), nullable=False)
+    phone = Column(String(20), nullable=True)
+    job_title = Column(String(255), nullable=True)
+    company = Column(String(255), nullable=True)
     user_type = Column(Enum("agent", "renter"), nullable=False)
 
     addresses = relationship("Address", back_populates="user", cascade="all, delete")

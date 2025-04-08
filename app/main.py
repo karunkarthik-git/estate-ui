@@ -35,7 +35,7 @@ def hash_password(password: str) -> str:
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
-@app.post("/register", response_model=User)
+@app.post("/register")
 def register_user(user: UserCreate, db: Session = Depends(get_db)):
     db_user = db.query(UserModel).filter(UserModel.email == user.email).first()
     if db_user:
@@ -49,6 +49,9 @@ def register_user(user: UserCreate, db: Session = Depends(get_db)):
         name=user.name,
         password=hashed_password,  # Store the hashed password
         user_type=user.user_type,
+        phone=user.phone if user.user_type == "agent" else None,  # Include phone for agents
+        job_title=user.job_title if user.user_type == "agent" else None,  # Include jobTitle for agents
+        company=user.company if user.user_type == "agent" else None  # Include company for agents
     )
     db.add(new_user)
     db.commit()  # Commit the user first to ensure the email exists in the database
@@ -91,43 +94,8 @@ def register_user(user: UserCreate, db: Session = Depends(get_db)):
     db.commit()
 
     # Prepare the response
-    response = {
-        "name": new_user.name,
-        "email": new_user.email,
-        "user_type": new_user.user_type,
-        "addresses": [
-            {
-                "addressId": address.address_id,
-                "street": address.street,
-                "city": address.city,
-                "state": address.state,
-                "zip": address.zip
-            }
-            for address in db.query(Address).filter(Address.user_email == new_user.email).all()
-        ],
-        "credit_cards": [
-            {
-                "cardId": card.card_id,
-                "number": card.number,
-                "expiry": card.expiry.strftime("%Y-%m-%d"),  # Convert date to string
-                "cvv": card.cvv,
-                "billingAddressId": card.billing_address_id
-            }
-            for card in db.query(CreditCard).filter(CreditCard.user_email == new_user.email).all()
-        ],
-        "renter_preferences": None
+    response ={
+        "email": new_user.email
     }
-
-    if new_user.user_type == "renter":
-        renter_preferences = db.query(RenterPreference).filter(RenterPreference.user_email == new_user.email).first()
-        if renter_preferences:
-            response["renter_preferences"] = {
-                "move_in_start": renter_preferences.move_in_start.strftime("%Y-%m-%d"),  # Convert date to string
-                "move_in_end": renter_preferences.move_in_end.strftime("%Y-%m-%d"),  # Convert date to string
-                "preferred_city": renter_preferences.preferred_city,
-                "preferred_state": renter_preferences.preferred_state,
-                "budget_min": renter_preferences.budget_min,
-                "budget_max": renter_preferences.budget_max
-            }
 
     return response

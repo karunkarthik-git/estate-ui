@@ -87,8 +87,17 @@ const Register: React.FC = () => {
                 addresses: formData.address,
                 user_type: 'agent',
                 phone: formData.phone,
-                jobTitle: formData.jobTitle,
+                job_title: formData.jobTitle,
                 company: formData.company,
+                renter_preferences: {
+                    preferred_city: '',
+                    preferred_state: '',
+                    move_in_start: '',
+                    move_in_end: '',
+                    budget_min: -1,
+                    budget_max: -1
+                },
+                credit_cards: []
             }
             : {
                 name: formData.name,
@@ -96,6 +105,9 @@ const Register: React.FC = () => {
                 password: formData.password,
                 addresses: formData.address,
                 user_type: 'renter',
+                phone: formData.phone,
+                job_title: formData.jobTitle,
+                company: formData.company,
                 renter_preferences: {
                     preferred_city: formData.preferredLocation.city,
                     preferred_state: formData.preferredLocation.state,

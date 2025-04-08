@@ -54,6 +54,9 @@ class UserCreate(UserBase):
     addresses: List[AddressCreate]
     credit_cards: List[CreditCardCreate]
     renter_preferences: Optional[RenterPreferenceCreate]
+    phone: Optional[str]
+    job_title: Optional[str]
+    company: Optional[str]
 
 class User(UserBase):
     addresses: List[Address]
