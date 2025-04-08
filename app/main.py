@@ -1,9 +1,11 @@
+from typing import List
+import uuid
 from fastapi import FastAPI, Depends, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from app.database import SessionLocal, engine
-from app.models import Base, User as UserModel, Address, CreditCard, RenterPreference  # Use SQLAlchemy models
-from app.schemas import UserCreate, User  # Use Pydantic schemas for validation
+from app.models import Base, User as UserModel, Address, CreditCard, RenterPreference, Property  # Use SQLAlchemy models
+from app.schemas import PropertySchema, PropertyCreate, UserCreate, User  # Use Pydantic schemas for validation
 from passlib.context import CryptContext
 
 # Initialize password hashing context
@@ -256,3 +258,107 @@ def update_user_details(request: dict, db: Session = Depends(get_db)):
     db.commit()
 
     return {"message": "User details updated successfully"}
+
+@app.post("/properties")
+def create_property(property: PropertyCreate, db: Session = Depends(get_db)):
+    property_id = str(uuid.uuid4())  # Ensure a unique UUID is generated for each property
+
+    new_property = Property(
+        pid=property_id,
+        name=property.name,
+        type=property.type,
+        description=property.description,
+        street=property.address.street,
+        city=property.address.city,
+        state=property.address.state,
+        country=property.address.country,
+        zip_code=property.address.zipCode,
+        property_type=property.propertyDetails.propertyType,
+        listing_type=property.propertyDetails.listingType,
+        price=property.propertyDetails.price,
+        rooms=property.propertyDetails.rooms,
+        square_feet=property.propertyDetails.squareFeet,
+        year_built=property.propertyDetails.yearBuilt,
+        additional_info=property.propertyDetails.additionalInfo,
+        property_image_url=property.propertyImageUrl,
+        available=property.available
+    )
+    db.add(new_property)
+    db.commit()
+    db.refresh(new_property)
+    return {"success": True, "property_id": new_property.pid}
+
+@app.get("/properties", response_model=List[PropertySchema])
+def get_properties(db: Session = Depends(get_db)):
+    properties = db.query(Property).all()
+    # Transform the SQLAlchemy model into the Pydantic schema
+    response = [
+        {
+            "pid": property.pid,
+            "name": property.name,
+            "type": property.type,
+            "description": property.description,
+            "address": {
+                "street": property.street,
+                "city": property.city,
+                "state": property.state,
+                "country": property.country,
+                "zipCode": property.zip_code,
+            },
+            "propertyDetails": {
+                "propertyType": property.property_type,
+                "listingType": property.listing_type,
+                "price": property.price,
+                "rooms": property.rooms,
+                "squareFeet": property.square_feet,
+                "yearBuilt": property.year_built,
+                "additionalInfo": property.additional_info,
+            },
+            "propertyImageUrl": property.property_image_url,
+            "available": property.available,
+        }
+        for property in properties
+    ]
+    return response
+
+@app.put("/properties/{property_id}")
+def update_property(property_id: str, property: PropertyCreate, db: Session = Depends(get_db)):
+    existing_property = db.query(Property).filter(Property.pid == property_id).first()
+    if not existing_property:
+        raise HTTPException(status_code=404, detail="Property not found")
+
+    # Update property details
+    existing_property.name = property.name
+    existing_property.type = property.type
+    existing_property.description = property.description
+    existing_property.street = property.address.street
+    existing_property.city = property.address.city
+    existing_property.state = property.address.state
+    existing_property.country = property.address.country
+    existing_property.zip_code = property.address.zipCode
+    existing_property.property_type = property.propertyDetails.propertyType
+    existing_property.listing_type = property.propertyDetails.listingType
+    existing_property.price = property.propertyDetails.price
+    existing_property.rooms = property.propertyDetails.rooms
+    existing_property.square_feet = property.propertyDetails.squareFeet
+    existing_property.year_built = property.propertyDetails.yearBuilt
+    existing_property.additional_info = property.propertyDetails.additionalInfo
+    existing_property.property_image_url = property.propertyImageUrl
+    existing_property.available = property.available
+
+    db.commit()
+    db.refresh(existing_property)
+    return {"success": True, "property_id": property_id}
+
+@app.delete("/properties/{property_id}")
+def delete_property(property_id: str, db: Session = Depends(get_db)):
+    # Query the property by pid
+    property = db.query(Property).filter(Property.pid == property_id).first()
+    if not property:
+        raise HTTPException(status_code=404, detail="Property not found")
+
+    # Delete the property
+    db.delete(property)
+    db.commit()
+
+    return {"success": True, "message": f"Property with id {property_id} has been deleted"}

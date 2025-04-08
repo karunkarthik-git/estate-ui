@@ -64,3 +64,33 @@ class User(UserBase):
 
     class Config:
         orm_mode = True
+
+class PropertyLocation(BaseModel):  # Renamed from PropertyAddress
+    street: str
+    city: str
+    state: str
+    country: str
+    zipCode: str
+
+class PropertyDetails(BaseModel):
+    propertyType: Optional[str]
+    listingType: Optional[str]
+    price: int
+    rooms: Optional[int]
+    squareFeet: Optional[int]
+    yearBuilt: Optional[int]
+    additionalInfo: Optional[List[str]]
+
+class PropertyCreate(BaseModel):
+    pid: str
+    name: str
+    type: str
+    description: Optional[str]
+    address: PropertyLocation  # Updated to use the renamed schema
+    propertyDetails: PropertyDetails
+    propertyImageUrl: Optional[str]
+    available: bool
+
+class PropertySchema(PropertyCreate):  # Renamed from Property
+    class Config:
+        orm_mode = True

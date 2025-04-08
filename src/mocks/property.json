@@ -18,7 +18,7 @@
         "bathrooms": 2,
         "squareFeet": 1500,
         "yearBuilt": 2000,
-        "amenities": [
+        "additionalInfo": [
             "Pool",
             "Gym",
             "Parking"

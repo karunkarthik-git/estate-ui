@@ -3,8 +3,8 @@ import { Form } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 
 const CreateBooking: React.FC<{ propertyInfo?: any }> = ({ propertyInfo }) => {
+    const [userInfo, setUserInfo] = useState<any>();
     const navigate = useNavigate();
-    const userInfo: any = {};
     const propertyPrice = propertyInfo?.price;
     const [formData, setFormData] = useState<any>({
         pid: propertyInfo?.pid || '',
@@ -17,6 +17,18 @@ const CreateBooking: React.FC<{ propertyInfo?: any }> = ({ propertyInfo }) => {
         },
         price: '',
     });
+
+    useEffect(() => {
+        let data: any = localStorage.getItem("userInfo");
+        if (data) {
+            data = JSON.parse(data);
+            setUserInfo(data);
+            setFormData((prev: any) => ({
+                ...prev,
+                email: data.email,
+            }));
+        }
+    }, [])
 
     useEffect(() => {
         if (propertyInfo) {
@@ -103,7 +115,7 @@ const CreateBooking: React.FC<{ propertyInfo?: any }> = ({ propertyInfo }) => {
                             onChange={(e) => handleInputChange(e, 'cardId')}
                         >
                             <option value="">Select a Credit Card</option>
-                            {userInfo?.creditCards?.map((card) => (
+                            {userInfo?.credit_cards?.map((card) => (
                                 <option key={card.cardId} value={card.cardId}>
                                     {`**** **** **** ${card.number.slice(-4)} (Expiry: ${card.expiry})`}
                                 </option>

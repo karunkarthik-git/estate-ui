@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Enum, ForeignKey, Date, DECIMAL
+from sqlalchemy import JSON, Boolean, Column, Integer, String, Enum, ForeignKey, Date, DECIMAL
 from sqlalchemy.orm import relationship
 from app.database import Base
 
@@ -49,3 +49,24 @@ class RenterPreference(Base):
     budget_max = Column(DECIMAL(10, 2), nullable=True)
 
     user = relationship("User", back_populates="renter_preferences")
+
+class Property(Base):
+    __tablename__ = "properties"
+    pid = Column(String(255), primary_key=True, index=True)
+    name = Column(String(255), nullable=False)
+    type = Column(String(255), nullable=False)
+    description = Column(String(500), nullable=True)
+    street = Column(String(255), nullable=False)
+    city = Column(String(255), nullable=False)
+    state = Column(String(255), nullable=False)
+    country = Column(String(255), nullable=False)
+    zip_code = Column(String(20), nullable=False)
+    property_type = Column(String(255), nullable=True)
+    listing_type = Column(String(255), nullable=True)
+    price = Column(Integer, nullable=False)
+    rooms = Column(Integer, nullable=True)
+    square_feet = Column(Integer, nullable=True)
+    year_built = Column(Integer, nullable=True)
+    additional_info = Column(JSON, nullable=True)
+    property_image_url = Column(String(500), nullable=True)
+    available = Column(Boolean, default=False)

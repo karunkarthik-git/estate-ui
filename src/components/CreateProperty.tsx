@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Form } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
+import { BASE_URL } from '../utils';
 
-const CreateProperty: React.FC<{ initialData?: any }> = ({ initialData }) => {
-    const navigate = useNavigate();
+const CreateProperty: React.FC<{ initialData?: any, editMode: boolean, handleClose: any }> = ({ initialData, editMode, handleClose }) => {
     const [formData, setFormData] = useState<any>({
         pid: initialData ? initialData.pid : uuidv4(),
         name: '',
@@ -14,18 +13,17 @@ const CreateProperty: React.FC<{ initialData?: any }> = ({ initialData }) => {
         propertyDetails: {
             propertyType: '',
             listingType: '',
-            price: '',
-            bedrooms: '',
-            bathrooms: '',
-            squareFeet: '',
-            yearBuilt: '',
-            amenities: [],
+            price: 0,
+            rooms: 0,
+            squareFeet: 0,
+            yearBuilt: 0,
+            additionalInfo: [],
         },
         propertyImageUrl: '',
         available: true,
     });
 
-    const [newAmenity, setNewAmenity] = useState<string>(''); // For dynamically adding amenities
+    const [newAmenity, setNewAmenity] = useState<string>(''); // For dynamically adding additionalInfo
 
     useEffect(() => {
         if (initialData) {
@@ -35,25 +33,35 @@ const CreateProperty: React.FC<{ initialData?: any }> = ({ initialData }) => {
 
     const handleInputChange = (e: any, field: string, parentField?: string) => {
         if (parentField) {
-            setFormData({
-                ...formData,
-                [parentField]: {
-                    ...formData[parentField],
-                    [field]: e.target.value,
-                },
-            });
+            if (e.target.valueAsNumber) {
+                setFormData({
+                    ...formData,
+                    [parentField]: {
+                        ...formData[parentField],
+                        [field]: e.target.valueAsNumber,
+                    },
+                });
+            } else {
+                setFormData({
+                    ...formData,
+                    [parentField]: {
+                        ...formData[parentField],
+                        [field]: e.target.value,
+                    },
+                });
+            }
         } else {
             setFormData({ ...formData, [field]: e.target.value });
         }
     };
 
     const handleAddAmenity = () => {
-        if (newAmenity.trim() && !formData.propertyDetails.amenities.includes(newAmenity)) {
+        if (newAmenity.trim() && !formData.propertyDetails.additionalInfo.includes(newAmenity)) {
             setFormData({
                 ...formData,
                 propertyDetails: {
                     ...formData.propertyDetails,
-                    amenities: [...formData.propertyDetails.amenities, newAmenity],
+                    additionalInfo: [...formData.propertyDetails.additionalInfo, newAmenity],
                 },
             });
             setNewAmenity(''); // Clear the input field
@@ -61,20 +69,71 @@ const CreateProperty: React.FC<{ initialData?: any }> = ({ initialData }) => {
     };
 
     const handleRemoveAmenity = (amenity: string) => {
-        const updatedAmenities = formData.propertyDetails.amenities.filter((a: string) => a !== amenity);
+        const updatedAmenities = formData.propertyDetails.additionalInfo.filter((a: string) => a !== amenity);
         setFormData({
             ...formData,
             propertyDetails: {
                 ...formData.propertyDetails,
-                amenities: updatedAmenities,
+                additionalInfo: updatedAmenities,
             },
         });
     };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        console.log('Final Property Data:', formData);
-        navigate('/properties'); // Redirect to home or property list after submission
+        if (editMode) {
+            fetch(`${BASE_URL}/properties/${initialData.pid}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData),
+            })
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                }
+                )
+                .then((data) => {
+                    console.log('Success updated:', data);
+                    handleClose();
+                    // Optionally, you can redirect or show a success message here
+                }
+                )
+                .catch((error) => {
+                    console.error('Error:', error);
+                    // Optionally, you can show an error message here
+                }
+                );
+        } else {
+            fetch(`${BASE_URL}/properties`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData),
+            })
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                }
+                )
+                .then((data) => {
+                    console.log('Success:', data);
+                    handleClose();
+                    // Optionally, you can redirect or show a success message here
+                }
+                )
+                .catch((error) => {
+                    console.error('Error:', error);
+                    // Optionally, you can show an error message here
+                }
+                );
+        }
     };
 
     return (
@@ -156,6 +215,46 @@ const CreateProperty: React.FC<{ initialData?: any }> = ({ initialData }) => {
                 <div className="p-3 border rounded mb-3">
                     <h5 className="text-center">Property Details</h5>
                     <Form.Group className="mb-3">
+                        <Form.Label>Type</Form.Label>
+                        <Form.Control
+                            type="text"
+                            value={formData.propertyDetails.propertyType}
+                            onChange={(e) => handleInputChange(e, 'propertyType', 'propertyDetails')}
+                        />
+                    </Form.Group>
+                    <Form.Group className="mb-3">
+                        <Form.Label>Listing Type</Form.Label>
+                        <Form.Control
+                            type="text"
+                            value={formData.propertyDetails.listingType}
+                            onChange={(e) => handleInputChange(e, 'listingType', 'propertyDetails')}
+                        />
+                    </Form.Group>
+                    <Form.Group className="mb-3">
+                        <Form.Label>Rooms</Form.Label>
+                        <Form.Control
+                            type="number"
+                            value={formData.propertyDetails.rooms}
+                            onChange={(e) => handleInputChange(e, 'rooms', 'propertyDetails')}
+                        />
+                    </Form.Group>
+                    <Form.Group className="mb-3">
+                        <Form.Label>Square Feet</Form.Label>
+                        <Form.Control
+                            type="number"
+                            value={formData.propertyDetails.squareFeet}
+                            onChange={(e) => handleInputChange(e, 'squareFeet', 'propertyDetails')}
+                        />
+                    </Form.Group>
+                    <Form.Group className="mb-3">
+                        <Form.Label>Year Built</Form.Label>
+                        <Form.Control
+                            type="number"
+                            value={formData.propertyDetails.yearBuilt}
+                            onChange={(e) => handleInputChange(e, 'yearBuilt', 'propertyDetails')}
+                        />
+                    </Form.Group>
+                    <Form.Group className="mb-3">
                         <Form.Label>Price</Form.Label>
                         <Form.Control
                             type="number"
@@ -164,25 +263,9 @@ const CreateProperty: React.FC<{ initialData?: any }> = ({ initialData }) => {
                         />
                     </Form.Group>
                     <Form.Group className="mb-3">
-                        <Form.Label>Bedrooms</Form.Label>
-                        <Form.Control
-                            type="number"
-                            value={formData.propertyDetails.bedrooms}
-                            onChange={(e) => handleInputChange(e, 'bedrooms', 'propertyDetails')}
-                        />
-                    </Form.Group>
-                    <Form.Group className="mb-3">
-                        <Form.Label>Bathrooms</Form.Label>
-                        <Form.Control
-                            type="number"
-                            value={formData.propertyDetails.bathrooms}
-                            onChange={(e) => handleInputChange(e, 'bathrooms', 'propertyDetails')}
-                        />
-                    </Form.Group>
-                    <Form.Group className="mb-3">
-                        <Form.Label>Amenities</Form.Label>
+                        <Form.Label>Additional Info</Form.Label>
                         <div>
-                            {formData.propertyDetails.amenities.map((amenity: string, index: number) => (
+                            {formData.propertyDetails.additionalInfo.map((amenity: string, index: number) => (
                                 <div key={index} className="d-flex align-items-center mb-2">
                                     <span className="me-2">{amenity}</span>
                                     <button
