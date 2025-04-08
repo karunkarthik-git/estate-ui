@@ -13,12 +13,12 @@ const Login: React.FC = () => {
         console.log('Login submitted:', { email, password });
         // Add API for login.
         localStorage.setItem('email', email);
-        navigate('/');
+        navigate('/home');
     };
 
     useEffect(() => {
         if (isAuthenticated()) {
-            navigate('/'); // Redirect to home if already logged in
+            navigate('/home');
         }
     }, []);
 

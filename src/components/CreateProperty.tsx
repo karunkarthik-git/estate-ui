@@ -74,8 +74,7 @@ const CreateProperty: React.FC<{ initialData?: any }> = ({ initialData }) => {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         console.log('Final Property Data:', formData);
-        // Add API call here to create or update the property
-        navigate('/'); // Redirect to home or property list after submission
+        navigate('/properties'); // Redirect to home or property list after submission
     };
 
     return (

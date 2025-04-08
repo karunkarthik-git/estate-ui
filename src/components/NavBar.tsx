@@ -14,13 +14,13 @@ const NavBar: React.FC = () => {
     return (
         <Navbar bg="dark" variant="dark" expand="lg" className="mb-4">
             <Container>
-                <Navbar.Brand onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
+                <Navbar.Brand onClick={() => navigate('/home')} style={{ cursor: 'pointer' }}>
                     Real Estate App
                 </Navbar.Brand>
                 <Navbar.Toggle aria-controls="basic-navbar-nav" />
                 <Navbar.Collapse id="basic-navbar-nav">
                     <Nav className="me-auto">
-                        <Nav.Link onClick={() => navigate('/')}>Home</Nav.Link>
+                        <Nav.Link onClick={() => navigate('/home')}>Home</Nav.Link>
                         <Nav.Link onClick={() => navigate('/bookings')}>Bookings</Nav.Link>
                         <Nav.Link onClick={() => navigate('/properties')}>Properties</Nav.Link>
                         <Nav.Link onClick={() => navigate('/settings')}>User Settings</Nav.Link>

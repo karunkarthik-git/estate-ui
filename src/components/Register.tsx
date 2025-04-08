@@ -104,12 +104,12 @@ const Register: React.FC = () => {
 
         console.log('Final Payload:', payload);
         // Add API call here to submit the payload
-        //navigate('/'); // Redirect to home after successful registration
+        navigate('/home'); // Redirect to home after successful registration
     };
 
     useEffect(() => {
         if (isAuthenticated()) {
-            navigate('/'); // Redirect to home if already logged in
+            navigate('/home'); // Redirect to home if already logged in
         }
     }, []);
 

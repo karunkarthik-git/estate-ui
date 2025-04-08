@@ -16,7 +16,7 @@ function App() {
     <Router>
       <Routes>
         <Route
-          path="/"
+          path="/home"
           element={isAuthenticated() ? <Home /> : <Navigate to="/login" />}
         />
         <Route path="/login" element={<Login />} />
