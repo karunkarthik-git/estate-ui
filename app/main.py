@@ -381,6 +381,14 @@ def create_booking(booking: BookingCreate, db: Session = Depends(get_db)):
     start_date = datetime.strptime(booking.duration["start"], "%Y-%m").date()
     end_date = datetime.strptime(booking.duration["end"], "%Y-%m").date()
 
+    property = db.query(Property).filter(Property.pid == booking.pid).first()
+    if not property:
+        raise HTTPException(status_code=404, detail="Property not found")
+
+    # Set the property as unavailable
+    property.available = False
+    db.commit()
+
     new_booking = Booking(
         bid=booking_id,  # Generate bid on the fly
         pid=booking.pid,
@@ -420,6 +428,11 @@ def update_booking(booking_id: str, db: Session = Depends(get_db)):
 
     # Update booking details
     existing_booking.status = "cancelled"
+
+    property = db.query(Property).filter(Property.pid == existing_booking.pid).first()
+    if property:
+        property.available = True
+        db.commit()
 
     db.commit()
     db.refresh(existing_booking)
