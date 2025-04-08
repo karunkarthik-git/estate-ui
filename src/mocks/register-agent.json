@@ -1,0 +1,20 @@
+{
+    "name": "test",
+    "email": "test@123.com",
+    "password": "test123",
+    "address": [{
+        "street": "123 Main St",
+        "city": "New York",
+        "state": "NY",
+        "zip": "10001"
+    }, {
+        "street": "123 Main St",
+        "city": "New York",
+        "state": "NY",
+        "zip": "10001"
+    }],
+    "userType": "agent",
+    "phone": "1234567890",
+    "jobTitle": "Software Engineer",
+    "company": "Tech Solutions"
+}

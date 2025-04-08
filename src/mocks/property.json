@@ -1,0 +1,29 @@
+{
+    "pid": "1234567890",
+    "name": "Test Property",
+    "type": "Apartment",
+    "description": "This is a test property description.",
+    "address": {
+        "street": "123 Test St",
+        "city": "Test City",
+        "state": "Test State",
+        "country": "Test Country",
+        "zipCode": "12345"
+    },
+    "propertyDetails": {
+        "propertyType": "Residential",
+        "listingType": "For Sale",
+        "price": 300000,
+        "bedrooms": 3,
+        "bathrooms": 2,
+        "squareFeet": 1500,
+        "yearBuilt": 2000,
+        "amenities": [
+            "Pool",
+            "Gym",
+            "Parking"
+        ]
+    },
+    "propertyImageUrl": "https://example.com/property.jpg",
+    "available": true
+}
