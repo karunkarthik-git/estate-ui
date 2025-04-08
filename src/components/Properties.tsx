@@ -28,7 +28,7 @@ const Properties = () => {
     };
 
     useEffect(() => {
-        let data = localStorage.getItem("userDetails");
+        let data = localStorage.getItem("userInfo");
         if (data) {
             data = JSON.parse(data);
             setUserInfo(data);

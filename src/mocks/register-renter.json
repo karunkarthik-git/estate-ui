@@ -31,7 +31,6 @@
     "creditCard": [{
         "number": "1234-5678-9012-3456",
         "expiry": "12/25",
-        "cvv": "123",
         "billingAddressId": "some-address-id"
     }]
 }

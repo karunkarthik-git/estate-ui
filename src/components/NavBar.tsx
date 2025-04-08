@@ -8,12 +8,12 @@ const NavBar = () => {
 
     const handleLogout = () => {
         // Clear user session or token
-        localStorage.removeItem('userDetails');
+        localStorage.removeItem('userInfo');
         navigate('/login'); // Redirect to login page
     };
 
     React.useEffect(() => {
-        let data = localStorage.getItem("userDetails");
+        let data = localStorage.getItem("userInfo");
         if (data) {
             data = JSON.parse(data);
             setUserInfo(data);

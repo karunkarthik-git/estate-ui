@@ -26,7 +26,7 @@ CREATE TABLE credit_cards (
     user_email VARCHAR(255) NOT NULL,
     number VARCHAR(20) NOT NULL,
     expiry DATE NOT NULL,
-    cvv VARCHAR(10) NOT NULL,
+    -- cvv VARCHAR(10) NOT NULL,
     billing_address_id VARCHAR(255),
     FOREIGN KEY (user_email) REFERENCES users(email) ON DELETE CASCADE,
     FOREIGN KEY (billing_address_id) REFERENCES addresses(address_id) ON DELETE SET NULL

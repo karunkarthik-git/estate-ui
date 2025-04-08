@@ -18,7 +18,6 @@ class Address(AddressBase):
 class CreditCardBase(BaseModel):
     number: str
     expiry: str
-    cvv: str
     billingAddressId: Optional[str]
     cardId: str
 

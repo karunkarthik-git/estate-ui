@@ -33,7 +33,6 @@ class CreditCard(Base):
     user_email = Column(String(255), ForeignKey("users.email", ondelete="CASCADE"), nullable=False)
     number = Column(String(20), nullable=False)
     expiry = Column(Date, nullable=False)
-    cvv = Column(String(10), nullable=False)
     billing_address_id = Column(String(255), ForeignKey("addresses.address_id", ondelete="SET NULL"), nullable=True)
 
     user = relationship("User", back_populates="credit_cards")

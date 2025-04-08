@@ -27,7 +27,7 @@ const Login = ({ handleLogin }: any) => {
                     return response.json();
                 })
                 .then(response => {
-                    localStorage.setItem("userDetails", JSON.stringify(response))
+                    localStorage.setItem("userInfo", JSON.stringify(response))
                     resolve(response);
                 })
                 .catch(error => {

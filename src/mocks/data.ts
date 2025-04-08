@@ -123,7 +123,6 @@ export const USER = {
         {
             "number": "1231232242343",
             "expiry": "2002-02-10",
-            "cvv": "234",
             "billingAddressId": "7f8f7d31-f149-4a8a-a541-3c7730b58181",
             "cardId": "e62d8f95-6811-45e7-b931-d8ce8e2421a4"
         }

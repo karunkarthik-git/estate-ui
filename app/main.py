@@ -74,7 +74,6 @@ def register_user(user: UserCreate, db: Session = Depends(get_db)):
             user_email=new_user.email,
             number=card.number,
             expiry=card.expiry,
-            cvv=card.cvv,
             billing_address_id=card.billingAddressId,
             card_id=card.cardId  # Map cardId to card_id
         ))
@@ -213,3 +212,47 @@ def login_user(request: dict, db: Session = Depends(get_db)):
         }
 
     return response
+
+
+@app.put("/user/update")
+def update_user_details(request: dict, db: Session = Depends(get_db)):
+    # Extract email, addresses, and credit cards from the request body
+    email = request.get("email")
+    addresses = request.get("addresses", [])
+    credit_cards = request.get("credit_cards", [])
+
+    if not email:
+        raise HTTPException(status_code=400, detail="Email is required")
+
+    # Query the user by email
+    user = db.query(UserModel).filter(UserModel.email == email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Update addresses
+    db.query(Address).filter(Address.user_email == email).delete()  # Delete existing addresses
+    for address in addresses:
+        db.add(Address(
+            user_email=email,
+            street=address["street"],
+            city=address["city"],
+            state=address["state"],
+            zip=address["zip"],
+            address_id=address["addressId"]
+        ))
+
+    # Update credit cards
+    db.query(CreditCard).filter(CreditCard.user_email == email).delete()  # Delete existing credit cards
+    for card in credit_cards:
+        db.add(CreditCard(
+            user_email=email,
+            number=card["number"],
+            expiry=card["expiry"],
+            # cvv=card["cvv"],
+            billing_address_id=card["billingAddressId"],
+            card_id=card["cardId"]
+        ))
+
+    db.commit()
+
+    return {"message": "User details updated successfully"}
