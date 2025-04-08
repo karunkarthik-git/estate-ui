@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Form } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid'; // For generating unique address IDs
-import { isAuthenticated } from '../utils';
+import { BASE_URL, isAuthenticated } from '../utils';
 
 const Register: React.FC = () => {
     const navigate = useNavigate();
@@ -84,8 +84,8 @@ const Register: React.FC = () => {
                 name: formData.name,
                 email: formData.email,
                 password: formData.password,
-                address: formData.address,
-                userType: 'agent',
+                addresses: formData.address,
+                user_type: 'agent',
                 phone: formData.phone,
                 jobTitle: formData.jobTitle,
                 company: formData.company,
@@ -94,17 +94,39 @@ const Register: React.FC = () => {
                 name: formData.name,
                 email: formData.email,
                 password: formData.password,
-                address: formData.address,
-                userType: 'renter',
-                moveInDate: formData.moveInDate,
-                preferredLocation: formData.preferredLocation,
-                budget: formData.budget,
-                creditCards: formData.creditCards,
+                addresses: formData.address,
+                user_type: 'renter',
+                renter_preferences: {
+                    preferred_city: formData.preferredLocation.city,
+                    preferred_state: formData.preferredLocation.state,
+                    move_in_start: formData.moveInDate.start,
+                    move_in_end: formData.moveInDate.end,
+                    budget_min: formData.budget.min,
+                    budget_max: formData.budget.max
+                },
+                credit_cards: formData.creditCards,
             };
 
+        fetch(`${BASE_URL}/register`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+        })
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        }
+        )
+        .then((data) => {
+            console.log('Registration successful:', data);
+            navigate('/home'); // Redirect to home after successful registration
+        });
         console.log('Final Payload:', payload);
         // Add API call here to submit the payload
-        navigate('/home'); // Redirect to home after successful registration
     };
 
     useEffect(() => {
@@ -205,7 +227,7 @@ const Register: React.FC = () => {
                             </button>
                         </div>
                     ))}
-                    <button type="button" className="btn btn-secondary mb-3" onClick={addAddress} disabled={formData.address.length >= 3}>  
+                    <button type="button" className="btn btn-secondary mb-3" onClick={addAddress} disabled={formData.address.length >= 3}>
                         Add Address
                     </button>
 
