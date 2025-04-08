@@ -1,26 +1,53 @@
 import React, { useEffect, useState } from 'react';
 import { Form } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
-import { isAuthenticated } from '../utils';
+import { BASE_URL } from '../utils';
 
-const Login: React.FC = () => {
+const Login = ({ handleLogin }: any) => {
     const navigate = useNavigate();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
+    const validateLogin = (email, password) => {
+        return new Promise((resolve, reject) => {
+            fetch(`${BASE_URL}/login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    email: email,
+                    password: password
+                })
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(response => {
+                    localStorage.setItem("userDetails", JSON.stringify(response))
+                    resolve(response);
+                })
+                .catch(error => {
+                    console.error('There was a problem with the fetch operation:', error);
+                    resolve(null);
+                });
+        });
+    }
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        console.log('Login submitted:', { email, password });
-        // Add API for login.
-        localStorage.setItem('email', email);
-        navigate('/home');
+        validateLogin(email, password).then((response: any) => {
+            if (response) {
+                handleLogin(response);
+                navigate('/home'); // Redirect to home page after successful login
+            } else {
+                alert('Invalid email or password');
+            }
+        });
     };
-
-    useEffect(() => {
-        if (isAuthenticated()) {
-            navigate('/home');
-        }
-    }, []);
 
     return (
         <div className="login-container">

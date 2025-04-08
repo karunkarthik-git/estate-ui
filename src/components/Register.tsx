@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Form } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid'; // For generating unique address IDs
-import { BASE_URL, isAuthenticated } from '../utils';
+import { BASE_URL } from '../utils';
 
 const Register: React.FC = () => {
     const navigate = useNavigate();
@@ -140,12 +140,6 @@ const Register: React.FC = () => {
         console.log('Final Payload:', payload);
         // Add API call here to submit the payload
     };
-
-    useEffect(() => {
-        if (isAuthenticated()) {
-            navigate('/home'); // Redirect to home if already logged in
-        }
-    }, []);
 
     return (
         <div className="d-flex justify-content-center align-items-center">
@@ -344,14 +338,14 @@ const Register: React.FC = () => {
                                             onChange={(e) => handleInputChange(e, 'expiry', index, 'creditCards')}
                                         />
                                     </Form.Group>
-                                    <Form.Group className="mb-3">
+                                    {/* <Form.Group className="mb-3">
                                         <Form.Label>CVV</Form.Label>
                                         <Form.Control
                                             type="text"
                                             value={card.cvv}
                                             onChange={(e) => handleInputChange(e, 'cvv', index, 'creditCards')}
                                         />
-                                    </Form.Group>
+                                    </Form.Group> */}
                                     <Form.Group className="mb-3">
                                         <Form.Label>Billing Address</Form.Label>
                                         <Form.Select

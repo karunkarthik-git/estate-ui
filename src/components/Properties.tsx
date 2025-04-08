@@ -4,7 +4,8 @@ import CreateProperty from "./CreateProperty";
 import NavBar from "./NavBar";
 import CreateBooking from "./CreateBooking";
 
-const Properties: React.FC = () => {
+const Properties = () => {
+    const [userInfo, setUserInfo] = useState<any>();
     const [showBooking, setShowBooking] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [selectedProperty, setSelectedProperty] = useState<any>(null);
@@ -27,9 +28,10 @@ const Properties: React.FC = () => {
     };
 
     useEffect(() => {
-        var data = localStorage.getItem("properties");
+        let data = localStorage.getItem("userDetails");
         if (data) {
-            setProperties(JSON.parse(data));
+            data = JSON.parse(data);
+            setUserInfo(data);
         }
     }, [])
 

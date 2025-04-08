@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from app.database import SessionLocal, engine
@@ -97,5 +97,119 @@ def register_user(user: UserCreate, db: Session = Depends(get_db)):
     response ={
         "email": new_user.email
     }
+
+    return response
+
+@app.post("/user/details")
+async def get_user_details(request: Request, db: Session = Depends(get_db)):
+    # Query the user by email
+    body = await request.json()
+    email = body.get("email")
+    user = db.query(UserModel).filter(UserModel.email == email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Prepare the response
+    response = {
+        "name": user.name,
+        "email": user.email,
+        "user_type": user.user_type,
+        "phone": user.phone,
+        "job_title": user.job_title,
+        "company": user.company,
+        "addresses": [
+            {
+                "addressId": address.address_id,
+                "street": address.street,
+                "city": address.city,
+                "state": address.state,
+                "zip": address.zip
+            }
+            for address in user.addresses
+        ],
+        "credit_cards": [
+            {
+                "cardId": card.card_id,
+                "number": card.number,
+                "expiry": card.expiry.strftime("%Y-%m-%d"),
+                "billingAddressId": card.billing_address_id
+            }
+            for card in user.credit_cards
+        ],
+        "renter_preferences": None
+    }
+
+    # Include renter preferences if the user is a renter
+    if user.user_type == "renter" and user.renter_preferences:
+        response["renter_preferences"] = {
+            "move_in_start": user.renter_preferences.move_in_start.strftime("%Y-%m-%d"),
+            "move_in_end": user.renter_preferences.move_in_end.strftime("%Y-%m-%d"),
+            "preferred_city": user.renter_preferences.preferred_city,
+            "preferred_state": user.renter_preferences.preferred_state,
+            "budget_min": user.renter_preferences.budget_min,
+            "budget_max": user.renter_preferences.budget_max
+        }
+
+    return response
+
+
+@app.post("/login")
+def login_user(request: dict, db: Session = Depends(get_db)):
+    # Extract email and password from the request body
+    email = request.get("email")
+    password = request.get("password")
+
+    if not email or not password:
+        raise HTTPException(status_code=400, detail="Email and password are required")
+
+    # Query the user by email
+    user = db.query(UserModel).filter(UserModel.email == email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Verify the password
+    if not verify_password(password, user.password):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    # Prepare the response
+    response = {
+        "name": user.name,
+        "email": user.email,
+        "user_type": user.user_type,
+        "phone": user.phone,
+        "job_title": user.job_title,
+        "company": user.company,
+        "addresses": [
+            {
+                "addressId": address.address_id,
+                "street": address.street,
+                "city": address.city,
+                "state": address.state,
+                "zip": address.zip
+            }
+            for address in user.addresses
+        ],
+        "credit_cards": [
+            {
+                "cardId": card.card_id,
+                "number": card.number,
+                "expiry": card.expiry.strftime("%Y-%m-%d"),
+                "billingAddressId": card.billing_address_id
+            }
+            for card in user.credit_cards
+        ],
+        "renter_preferences": None
+    }
+
+    # Include renter preferences if the user is a renter
+    if user.user_type == "renter" and user.renter_preferences:
+        response["renter_preferences"] = {
+            "move_in_start": user.renter_preferences.move_in_start.strftime("%Y-%m-%d"),
+            "move_in_end": user.renter_preferences.move_in_end.strftime("%Y-%m-%d"),
+            "preferred_city": user.renter_preferences.preferred_city,
+            "preferred_state": user.renter_preferences.preferred_state,
+            "budget_min": user.renter_preferences.budget_min,
+            "budget_max": user.renter_preferences.budget_max
+        }
 
     return response

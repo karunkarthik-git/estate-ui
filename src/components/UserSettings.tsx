@@ -3,34 +3,38 @@ import { Form } from 'react-bootstrap';
 import { v4 as uuidv4 } from 'uuid';
 import NavBar from './NavBar';
 
-const UserSettings: React.FC<{ initialData: any }> = ({ initialData }) => {
+const UserSettings = () => {
+    const [userInfo, setUserInfo] = useState<any>();
     const [formData, setFormData] = useState<any>({
         name: '',
         email: '',
-        address: [{ street: '', city: '', state: '', zip: '', addressId: uuidv4() }],
-        creditCards: [{ number: '', expiry: '', cvv: '', billingAddressId: '', cardId: uuidv4() }],
+        addresses: [{ street: '', city: '', state: '', zip: '', addressId: uuidv4() }],
+        credit_cards: [{ number: '', expiry: '', cvv: '', billingAddressId: '', cardId: uuidv4() }],
     });
 
     useEffect(() => {
-        if (initialData) {
-            setFormData(initialData); // Prefill the form with initial data
+        let data = localStorage.getItem("userDetails");
+        if (data) {
+            data = JSON.parse(data);
+            setUserInfo(data);
+            setFormData(data);
         }
-    }, [initialData]);
+    }, [])
 
     const handleInputChange = (
         e: any,
         field: string,
         index?: number,
-        type?: 'address' | 'creditCard'
+        type?: 'addresses' | 'creditCard'
     ) => {
-        if (type === 'address' && index !== undefined) {
-            const updatedAddress = [...formData.address];
+        if (type === 'addresses' && index !== undefined) {
+            const updatedAddress = [...formData.addresses];
             updatedAddress[index][field] = e.target.value;
-            setFormData({ ...formData, address: updatedAddress });
+            setFormData({ ...formData, addresses: updatedAddress });
         } else if (type === 'creditCard' && index !== undefined) {
-            const updatedCards = [...formData.creditCards];
+            const updatedCards = [...formData.credit_cards];
             updatedCards[index][field] = e.target.value;
-            setFormData({ ...formData, creditCards: updatedCards });
+            setFormData({ ...formData, credit_cards: updatedCards });
         } else {
             setFormData({ ...formData, [field]: e.target.value });
         }
@@ -39,32 +43,32 @@ const UserSettings: React.FC<{ initialData: any }> = ({ initialData }) => {
     const addAddress = () => {
         setFormData({
             ...formData,
-            address: [...formData.address, { street: '', city: '', state: '', zip: '', addressId: uuidv4() }],
+            addresses: [...formData.addresses, { street: '', city: '', state: '', zip: '', addressId: uuidv4() }],
         });
     };
 
     const addCreditCard = () => {
         setFormData({
             ...formData,
-            creditCards: [...formData.creditCards, { number: '', expiry: '', cvv: '', billingAddressId: '', cardId: uuidv4() }],
+            credit_cards: [...formData.credit_cards, { number: '', expiry: '', cvv: '', billingAddressId: '', cardId: uuidv4() }],
         });
     };
 
     const deleteAddress = (index: number) => {
-        const addressId = formData.address[index].addressId;
-        const isLinked = formData.creditCards.some((card: any) => card.billingAddressId === addressId);
+        const addressId = formData.addresses[index].addressId;
+        const isLinked = formData.credit_cards.some((card: any) => card.billingAddressId === addressId);
 
         if (!isLinked) {
-            const updatedAddress = formData.address.filter((_: any, i: number) => i !== index);
-            setFormData({ ...formData, address: updatedAddress });
+            const updatedAddress = formData.addresses.filter((_: any, i: number) => i !== index);
+            setFormData({ ...formData, addresses: updatedAddress });
         } else {
-            alert('Cannot delete address linked to a credit card.');
+            alert('Cannot delete addresses linked to a credit card.');
         }
     };
 
     const deleteCreditCard = (index: number) => {
-        const updatedCards = formData.creditCards.filter((_: any, i: number) => i !== index);
-        setFormData({ ...formData, creditCards: updatedCards });
+        const updatedCards = formData.credit_cards.filter((_: any, i: number) => i !== index);
+        setFormData({ ...formData, credit_cards: updatedCards });
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -103,46 +107,46 @@ const UserSettings: React.FC<{ initialData: any }> = ({ initialData }) => {
 
                     <div className="p-3 border rounded mb-3">
                         <h5 className="text-center">Address Information</h5>
-                        {formData.address.map((address: any, index: number) => (
-                            <div key={address.addressId} className="p-3 border rounded mb-3">
+                        {formData.addresses?.map((addresses: any, index: number) => (
+                            <div key={addresses.addressId} className="p-3 border rounded mb-3">
                                 <h6>Address {index + 1}</h6>
                                 <Form.Group className="mb-3">
                                     <Form.Label>Street</Form.Label>
                                     <Form.Control
                                         type="text"
-                                        value={address.street}
-                                        onChange={(e) => handleInputChange(e, 'street', index, 'address')}
+                                        value={addresses.street}
+                                        onChange={(e) => handleInputChange(e, 'street', index, 'addresses')}
                                     />
                                 </Form.Group>
                                 <Form.Group className="mb-3">
                                     <Form.Label>City</Form.Label>
                                     <Form.Control
                                         type="text"
-                                        value={address.city}
-                                        onChange={(e) => handleInputChange(e, 'city', index, 'address')}
+                                        value={addresses.city}
+                                        onChange={(e) => handleInputChange(e, 'city', index, 'addresses')}
                                     />
                                 </Form.Group>
                                 <Form.Group className="mb-3">
                                     <Form.Label>State</Form.Label>
                                     <Form.Control
                                         type="text"
-                                        value={address.state}
-                                        onChange={(e) => handleInputChange(e, 'state', index, 'address')}
+                                        value={addresses.state}
+                                        onChange={(e) => handleInputChange(e, 'state', index, 'addresses')}
                                     />
                                 </Form.Group>
                                 <Form.Group className="mb-3">
                                     <Form.Label>Zip</Form.Label>
                                     <Form.Control
                                         type="text"
-                                        value={address.zip}
-                                        onChange={(e) => handleInputChange(e, 'zip', index, 'address')}
+                                        value={addresses.zip}
+                                        onChange={(e) => handleInputChange(e, 'zip', index, 'addresses')}
                                     />
                                 </Form.Group>
                                 <button
                                     type="button"
                                     className="btn btn-danger mb-3"
                                     onClick={() => deleteAddress(index)}
-                                    disabled={formData.address.length <= 1}
+                                    disabled={formData.addresses.length <= 1}
                                 >
                                     Delete Address
                                 </button>
@@ -155,7 +159,7 @@ const UserSettings: React.FC<{ initialData: any }> = ({ initialData }) => {
 
                     <div className="p-3 border rounded mb-3">
                         <h5 className="text-center">Credit Card Information</h5>
-                        {formData.creditCards.map((card: any, index: number) => (
+                        {formData.credit_cards.map((card: any, index: number) => (
                             <div key={card.cardId} className="p-3 border rounded mb-3">
                                 <h6>Credit Card {index + 1}</h6>
                                 <Form.Group className="mb-3">
@@ -174,14 +178,14 @@ const UserSettings: React.FC<{ initialData: any }> = ({ initialData }) => {
                                         onChange={(e) => handleInputChange(e, 'expiry', index, 'creditCard')}
                                     />
                                 </Form.Group>
-                                <Form.Group className="mb-3">
+                                {/* <Form.Group className="mb-3">
                                     <Form.Label>CVV</Form.Label>
                                     <Form.Control
                                         type="text"
                                         value={card.cvv}
                                         onChange={(e) => handleInputChange(e, 'cvv', index, 'creditCard')}
                                     />
-                                </Form.Group>
+                                </Form.Group> */}
                                 <Form.Group className="mb-3">
                                     <Form.Label>Billing Address</Form.Label>
                                     <Form.Select
@@ -189,9 +193,9 @@ const UserSettings: React.FC<{ initialData: any }> = ({ initialData }) => {
                                         onChange={(e) => handleInputChange(e, 'billingAddressId', index, 'creditCard')}
                                     >
                                         <option value="">Select Billing Address</option>
-                                        {formData.address.map((address: any) => (
-                                            <option key={address.addressId} value={address.addressId}>
-                                                {address.street}, {address.city}, {address.state}, {address.zip}
+                                        {formData.addresses.map((addresses: any) => (
+                                            <option key={addresses.addressId} value={addresses.addressId}>
+                                                {addresses.street}, {addresses.city}, {addresses.state}, {addresses.zip}
                                             </option>
                                         ))}
                                     </Form.Select>
@@ -200,7 +204,7 @@ const UserSettings: React.FC<{ initialData: any }> = ({ initialData }) => {
                                     type="button"
                                     className="btn btn-danger mb-3"
                                     onClick={() => deleteCreditCard(index)}
-                                    disabled={formData.creditCards.length <= 1}
+                                    disabled={formData.credit_cards.length <= 1}
                                 >
                                     Delete Credit Card
                                 </button>
