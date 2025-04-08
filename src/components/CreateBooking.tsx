@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Form } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
+import { BASE_URL } from '../utils';
 
-const CreateBooking: React.FC<{ propertyInfo?: any }> = ({ propertyInfo }) => {
+const CreateBooking = ({ propertyInfo, handleClose }) => {
     const [userInfo, setUserInfo] = useState<any>();
     const navigate = useNavigate();
     const propertyPrice = propertyInfo?.price;
     const [formData, setFormData] = useState<any>({
         pid: propertyInfo?.pid || '',
         name: propertyInfo?.name || '',
+        owner_email: propertyInfo?.owner_email || '',
         email: userInfo?.email || '',
         cardId: '',
         duration: {
@@ -16,6 +18,7 @@ const CreateBooking: React.FC<{ propertyInfo?: any }> = ({ propertyInfo }) => {
             end: '',
         },
         price: '',
+        status: 'booked',
     });
 
     useEffect(() => {
@@ -35,7 +38,8 @@ const CreateBooking: React.FC<{ propertyInfo?: any }> = ({ propertyInfo }) => {
             setFormData((prev: any) => ({
                 ...prev,
                 pid: propertyInfo.pid,
-                name: propertyInfo.name
+                name: propertyInfo.name,
+                owner_email: propertyInfo.owner_email
             }));
         }
     }, [propertyInfo]);
@@ -83,6 +87,29 @@ const CreateBooking: React.FC<{ propertyInfo?: any }> = ({ propertyInfo }) => {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         console.log('Final Booking Data:', formData);
+        fetch(`${BASE_URL}/bookings`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData),
+        })
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            }
+        )
+            .then((data) => {
+                console.log('Booking created successfully:', data);
+                handleClose({refresh: true});
+            }
+        )
+            .catch((error) => {
+                console.error('Error creating booking:', error);
+            }
+        );
         alert('Booking created successfully!');
         navigate('/bookings'); // Redirect to bookings page
     };

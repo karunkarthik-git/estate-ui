@@ -25,3 +25,17 @@ export const getUserInfo = async (email) => {
       });
   })
 }
+
+export const getProperties = () => {
+  return new Promise((resolve, reject) => {
+    fetch(`${BASE_URL}/properties`)
+    .then((response) => response.json())
+    .then((data) => {
+        resolve(data);
+    })
+    .catch((error) => {
+      resolve(null);
+      console.error("Error fetching properties:", error);
+    });
+  });
+}

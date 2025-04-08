@@ -3,9 +3,10 @@ import { Form } from 'react-bootstrap';
 import { v4 as uuidv4 } from 'uuid';
 import { BASE_URL } from '../utils';
 
-const CreateProperty: React.FC<{ initialData?: any, editMode: boolean, handleClose: any }> = ({ initialData, editMode, handleClose }) => {
+const CreateProperty: React.FC<{ initialData?: any, editMode: boolean, handleClose: any, userInfo: any }> = ({ initialData, editMode, handleClose, userInfo }) => {
     const [formData, setFormData] = useState<any>({
         pid: initialData ? initialData.pid : uuidv4(),
+        owner_email: userInfo.email,
         name: '',
         type: '',
         description: '',
@@ -18,6 +19,8 @@ const CreateProperty: React.FC<{ initialData?: any, editMode: boolean, handleClo
             squareFeet: 0,
             yearBuilt: 0,
             additionalInfo: [],
+            startDate: '',
+            endDate: ''
         },
         propertyImageUrl: '',
         available: true,
@@ -31,8 +34,16 @@ const CreateProperty: React.FC<{ initialData?: any, editMode: boolean, handleClo
         }
     }, [initialData]);
 
-    const handleInputChange = (e: any, field: string, parentField?: string) => {
-        if (parentField) {
+    const handleInputChange = (e: any, field: string, parentField?: string, type?: string) => {
+        if (type === 'date' && parentField) {
+            setFormData({
+                ...formData,
+                [parentField]: {
+                    ...formData[parentField],
+                    [field]: e.target.value,
+                },
+            });
+        } else if (parentField) {
             if (e.target.valueAsNumber) {
                 setFormData({
                     ...formData,
@@ -260,6 +271,22 @@ const CreateProperty: React.FC<{ initialData?: any, editMode: boolean, handleClo
                             type="number"
                             value={formData.propertyDetails.price}
                             onChange={(e) => handleInputChange(e, 'price', 'propertyDetails')}
+                        />
+                    </Form.Group>
+                    <Form.Group className="mb-3">
+                        <Form.Label>Start Date</Form.Label>
+                        <Form.Control
+                            type="date"
+                            value={formData.propertyDetails.startDate}
+                            onChange={(e) => handleInputChange(e, 'startDate', 'propertyDetails', 'date')}
+                        />
+                    </Form.Group>
+                    <Form.Group className="mb-3">
+                        <Form.Label>End Date</Form.Label>
+                        <Form.Control
+                            type="date"
+                            value={formData.propertyDetails.endDate}
+                            onChange={(e) => handleInputChange(e, 'endDate', 'propertyDetails', 'date')}
                         />
                     </Form.Group>
                     <Form.Group className="mb-3">

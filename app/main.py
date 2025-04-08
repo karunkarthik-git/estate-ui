@@ -1,11 +1,12 @@
+from datetime import datetime
 from typing import List
 import uuid
 from fastapi import FastAPI, Depends, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from app.database import SessionLocal, engine
-from app.models import Base, User as UserModel, Address, CreditCard, RenterPreference, Property  # Use SQLAlchemy models
-from app.schemas import PropertySchema, PropertyCreate, UserCreate, User  # Use Pydantic schemas for validation
+from app.models import Base, Booking, User as UserModel, Address, CreditCard, RenterPreference, Property  # Use SQLAlchemy models
+from app.schemas import BookingCreate, BookingSchema, PropertySchema, PropertyCreate, UserCreate, User  # Use Pydantic schemas for validation
 from passlib.context import CryptContext
 
 # Initialize password hashing context
@@ -266,6 +267,7 @@ def create_property(property: PropertyCreate, db: Session = Depends(get_db)):
     new_property = Property(
         pid=property_id,
         name=property.name,
+        owner_email=property.owner_email,
         type=property.type,
         description=property.description,
         street=property.address.street,
@@ -281,7 +283,9 @@ def create_property(property: PropertyCreate, db: Session = Depends(get_db)):
         year_built=property.propertyDetails.yearBuilt,
         additional_info=property.propertyDetails.additionalInfo,
         property_image_url=property.propertyImageUrl,
-        available=property.available
+        available=property.available,
+        start_date=property.propertyDetails.startDate,  # Map startDate
+        end_date=property.propertyDetails.endDate       # Map endDate
     )
     db.add(new_property)
     db.commit()
@@ -296,6 +300,7 @@ def get_properties(db: Session = Depends(get_db)):
         {
             "pid": property.pid,
             "name": property.name,
+            "owner_email": property.owner_email,
             "type": property.type,
             "description": property.description,
             "address": {
@@ -313,6 +318,8 @@ def get_properties(db: Session = Depends(get_db)):
                 "squareFeet": property.square_feet,
                 "yearBuilt": property.year_built,
                 "additionalInfo": property.additional_info,
+                "startDate": property.start_date,  # Include startDate
+                "endDate": property.end_date       # Include endDate
             },
             "propertyImageUrl": property.property_image_url,
             "available": property.available,
@@ -345,6 +352,8 @@ def update_property(property_id: str, property: PropertyCreate, db: Session = De
     existing_property.additional_info = property.propertyDetails.additionalInfo
     existing_property.property_image_url = property.propertyImageUrl
     existing_property.available = property.available
+    existing_property.start_date = property.propertyDetails.startDate  # Update startDate
+    existing_property.end_date = property.propertyDetails.endDate      # Update endDate
 
     db.commit()
     db.refresh(existing_property)
@@ -362,3 +371,92 @@ def delete_property(property_id: str, db: Session = Depends(get_db)):
     db.commit()
 
     return {"success": True, "message": f"Property with id {property_id} has been deleted"}
+
+
+
+@app.post("/bookings", response_model=BookingSchema)
+def create_booking(booking: BookingCreate, db: Session = Depends(get_db)):
+    # Generate a unique ID for the booking
+    booking_id = str(uuid.uuid4())
+    start_date = datetime.strptime(booking.duration["start"], "%Y-%m").date()
+    end_date = datetime.strptime(booking.duration["end"], "%Y-%m").date()
+
+    new_booking = Booking(
+        bid=booking_id,  # Generate bid on the fly
+        pid=booking.pid,
+        email=booking.email,
+        owner_email=booking.owner_email,
+        card_id=booking.cardId,  # Map cardId to card_id
+        start_date=start_date,
+        end_date=end_date,
+        price=booking.price,
+        status=booking.status
+    )
+    db.add(new_booking)
+    db.commit()
+    db.refresh(new_booking)
+
+    # Transform the response to match BookingSchema
+    response = {
+        "bid": new_booking.bid,
+        "pid": new_booking.pid,
+        "email": new_booking.email,
+        "owner_email": new_booking.owner_email,
+        "cardId": new_booking.card_id,
+        "duration": {
+            "start": new_booking.start_date.strftime("%Y-%m"),
+            "end": new_booking.end_date.strftime("%Y-%m")
+        },
+        "price": new_booking.price,
+        "status": new_booking.status
+    }
+    return response
+
+@app.put("/bookings/{booking_id}/cancel", response_model=BookingSchema)
+def update_booking(booking_id: str, db: Session = Depends(get_db)):
+    existing_booking = db.query(Booking).filter(Booking.bid == booking_id).first()
+    if not existing_booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+
+    # Update booking details
+    existing_booking.status = "cancelled"
+
+    db.commit()
+    db.refresh(existing_booking)
+
+    # Transform the response to match BookingSchema
+    response = {
+        "bid": existing_booking.bid,
+        "pid": existing_booking.pid,
+        "email": existing_booking.email,
+        "owner_email": existing_booking.owner_email,
+        "cardId": existing_booking.card_id,
+        "duration": {
+            "start": existing_booking.start_date.strftime("%Y-%m"),
+            "end": existing_booking.end_date.strftime("%Y-%m")
+        },
+        "price": existing_booking.price,
+        "status": existing_booking.status
+    }
+    return response
+
+@app.get("/bookings", response_model=List[BookingSchema])
+def get_bookings(db: Session = Depends(get_db)):
+    bookings = db.query(Booking).all()
+    response = [
+        {
+            "bid": booking.bid,
+            "pid": booking.pid,
+            "email": booking.email,
+            "owner_email": booking.owner_email,
+            "cardId": booking.card_id,  # Map card_id to cardId
+            "duration": {
+                "start": booking.start_date.strftime("%Y-%m"),  # Convert start_date to string
+                "end": booking.end_date.strftime("%Y-%m")       # Convert end_date to string
+            },
+            "price": booking.price,
+            "status": booking.status
+        }
+        for booking in bookings
+    ]
+    return response

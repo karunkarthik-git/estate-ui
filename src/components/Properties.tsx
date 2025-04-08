@@ -3,7 +3,7 @@ import { Button, Card, Col, Container, Image, Modal, Row } from "react-bootstrap
 import CreateProperty from "./CreateProperty";
 import NavBar from "./NavBar";
 import CreateBooking from "./CreateBooking";
-import { BASE_URL } from "../utils";
+import { BASE_URL, getProperties } from "../utils";
 
 const Properties = () => {
     const [userInfo, setUserInfo] = useState<any>();
@@ -11,6 +11,7 @@ const Properties = () => {
     const [showModal, setShowModal] = useState(false);
     const [selectedProperty, setSelectedProperty] = useState<any>(null);
     const [properties, setProperties]: any = useState([]);
+    const isAgent = userInfo?.user_type === "agent";
 
     const handleDeleteProperty = (property: any) => {
         // Confirm deletion
@@ -22,7 +23,7 @@ const Properties = () => {
         })
             .then((response) => {
                 if (response.ok) {
-                    getProperties(); // Refresh the property list after deletion
+                    getPropertiesList(); // Refresh the property list after deletion
                     console.log("Property deleted successfully");
                 } else {
                     console.error("Error deleting property:", response.statusText);
@@ -47,7 +48,7 @@ const Properties = () => {
         setShowModal(false); // Close the modal
         setSelectedProperty(null); // Clear the selected property
         setShowBooking(false); // Close the booking modal
-        getProperties(); // Refresh the property list
+        getPropertiesList(); // Refresh the property list
     };
 
     useEffect(() => {
@@ -58,19 +59,22 @@ const Properties = () => {
         }
     }, [])
 
-    const getProperties = () => {
-        fetch(`${BASE_URL}/properties`)
-        .then((response) => response.json())
-        .then((data) => {
-            setProperties(data);
-        })
-        .catch((error) => {
+    const getPropertiesList = () => {
+        getProperties().then((data) => {
+            if (data) {
+                setProperties(data);
+            } else {
+                console.error("Error fetching properties");
+            }
+        }
+        ).catch((error) => {
             console.error("Error fetching properties:", error);
-        });
+        }
+        );
     }
 
     useEffect(() => {
-        getProperties();
+        getPropertiesList();
     }, []);
 
 
@@ -108,11 +112,9 @@ const Properties = () => {
                                         </Row>
                                     </Container>
                                     <div className="d-flex flex-row-reverse mr-2">
-                                    <Button variant="primary" onClick={() => handleDeleteProperty(property)}>Delete</Button>
-                                    <span className="p-2"></span>
-                                    <Button variant="primary" onClick={() => handleEditProperty(property)}>Edit</Button>
-                                    <span className="p-2"></span>
-                                    <Button variant="primary" onClick={() => handleBookingProperty(property)}>Purchase</Button>
+                                    {isAgent ?  <><Button variant="primary" onClick={() => handleDeleteProperty(property)}>Delete</Button>
+                                    <span className="p-2"></span><Button variant="primary" onClick={() => handleEditProperty(property)}>Edit</Button>
+                                    <span className="p-2"></span></> : <><Button variant="primary" onClick={() => handleBookingProperty(property)}>Purchase</Button></>}
                                     </div>
                                 </div>
                             </Card.Body>
@@ -125,7 +127,7 @@ const Properties = () => {
                         <Modal.Title>{selectedProperty ? "Edit Property" : "Create Property"}</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
-                        <CreateProperty initialData={selectedProperty} editMode={!!selectedProperty} handleClose={() => {
+                        <CreateProperty userInfo={userInfo} initialData={selectedProperty} editMode={!!selectedProperty} handleClose={() => {
                             handleCloseModal();
                         }}/>
                     </Modal.Body>
@@ -139,6 +141,9 @@ const Properties = () => {
                             pid: selectedProperty?.pid,
                             name: selectedProperty?.name,
                             price: selectedProperty?.propertyDetails?.price || 0,
+                            owner_email: selectedProperty?.owner_email
+                        }} handleClose={(data) => {
+                            handleCloseModal();
                         }}/>
                     </Modal.Body>
                 </Modal>

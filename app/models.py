@@ -1,3 +1,4 @@
+import enum
 from sqlalchemy import JSON, Boolean, Column, Integer, String, Enum, ForeignKey, Date, DECIMAL
 from sqlalchemy.orm import relationship
 from app.database import Base
@@ -15,6 +16,7 @@ class User(Base):
     addresses = relationship("Address", back_populates="user", cascade="all, delete")
     credit_cards = relationship("CreditCard", back_populates="user", cascade="all, delete")
     renter_preferences = relationship("RenterPreference", back_populates="user", uselist=False)
+    properties = relationship("Property", back_populates="owner", cascade="all, delete")  # Relationship to Property
 
 class Address(Base):
     __tablename__ = "addresses"
@@ -54,6 +56,7 @@ class Property(Base):
     __tablename__ = "properties"
     pid = Column(String(255), primary_key=True, index=True)
     name = Column(String(255), nullable=False)
+    owner_email = Column(String(255), ForeignKey("users.email", ondelete="CASCADE"), nullable=False)
     type = Column(String(255), nullable=False)
     description = Column(String(500), nullable=True)
     street = Column(String(255), nullable=False)
@@ -70,3 +73,23 @@ class Property(Base):
     additional_info = Column(JSON, nullable=True)
     property_image_url = Column(String(500), nullable=True)
     available = Column(Boolean, default=False)
+    start_date = Column(Date, nullable=False)
+    end_date = Column(Date, nullable=False)
+    owner = relationship("User", back_populates="properties")  # Relationship to User
+
+
+class BookingStatus(enum.Enum):
+    booked = "booked"
+    cancelled = "cancelled"
+
+class Booking(Base):
+    __tablename__ = "bookings"
+    bid = Column(String(255), primary_key=True, index=True)  # Primary key for Booking
+    pid = Column(String(255), ForeignKey("properties.pid"), nullable=False)
+    email = Column(String(255), ForeignKey("users.email"), nullable=False)
+    owner_email = Column(String(255), ForeignKey("users.email"), nullable=False)
+    card_id = Column(String(255), ForeignKey("credit_cards.card_id"), nullable=False)
+    start_date = Column(Date, nullable=False)
+    end_date = Column(Date, nullable=False)
+    price = Column(Integer, nullable=False)
+    status = Column(Enum(BookingStatus), nullable=False)

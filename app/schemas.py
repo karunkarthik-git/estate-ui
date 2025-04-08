@@ -1,3 +1,5 @@
+from datetime import date
+from enum import Enum
 from pydantic import BaseModel, EmailStr
 from typing import List, Optional
 
@@ -80,10 +82,13 @@ class PropertyDetails(BaseModel):
     squareFeet: Optional[int]
     yearBuilt: Optional[int]
     additionalInfo: Optional[List[str]]
+    startDate: Optional[date]  # New field for start date
+    endDate: Optional[date]
 
 class PropertyCreate(BaseModel):
     pid: str
     name: str
+    owner_email: str
     type: str
     description: Optional[str]
     address: PropertyLocation  # Updated to use the renamed schema
@@ -92,5 +97,32 @@ class PropertyCreate(BaseModel):
     available: bool
 
 class PropertySchema(PropertyCreate):  # Renamed from Property
+    owner_email: str
+    class Config:
+        orm_mode = True
+
+class BookingStatus(str, Enum):
+    booked = "booked"
+    cancelled = "cancelled"
+
+class BookingCreate(BaseModel):
+    pid: str
+    email: str
+    owner_email: str
+    cardId: str
+    duration: dict
+    price: int
+    status: BookingStatus
+
+class BookingSchema(BaseModel):
+    bid: str  # Include bid in the response
+    pid: str
+    email: str
+    owner_email: str
+    cardId: str
+    duration: dict  # Transform start_date and end_date into a duration dictionary
+    price: int
+    status: BookingStatus
+
     class Config:
         orm_mode = True
