@@ -135,7 +135,7 @@ const Register: React.FC = () => {
         )
         .then((data) => {
             console.log('Registration successful:', data);
-            navigate('/home'); // Redirect to home after successful registration
+            navigate('/login'); // Redirect to home after successful registration
         });
         console.log('Final Payload:', payload);
         // Add API call here to submit the payload

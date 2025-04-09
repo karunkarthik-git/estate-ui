@@ -158,10 +158,10 @@ const Properties = () => {
         <>
             <NavBar />
             <div className="container mt-4">
-                <span className="d-flex justify-content-between align-items-center">
+                <span className="d-flex justify-content-center align-items-center">
                     <span></span>
                     <h1 className="text-center mb-4">Properties</h1>
-                    <Button
+                    {userInfo?.user_type != 'renter' ? <Button
                         variant="secondary"
                         onClick={(e) => {
                             e.preventDefault();
@@ -170,7 +170,7 @@ const Properties = () => {
                         }}
                     >
                         <h6>Add</h6>
-                    </Button>
+                    </Button>: <></>}
                 </span>
 
                 {/* Search Filters */}

@@ -404,6 +404,8 @@ def create_booking(booking: BookingCreate, db: Session = Depends(get_db)):
     property.available = False
     db.commit()
 
+    booking.status = "booked"
+
     new_booking = Booking(
         bid=booking_id,  # Generate bid on the fly
         pid=booking.pid,
