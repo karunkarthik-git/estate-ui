@@ -216,7 +216,6 @@ def login_user(request: dict, db: Session = Depends(get_db)):
 
     return response
 
-
 @app.put("/user/update")
 def update_user_details(request: dict, db: Session = Depends(get_db)):
     # Extract email, addresses, and credit cards from the request body
@@ -233,28 +232,44 @@ def update_user_details(request: dict, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="User not found")
 
     # Update addresses
-    db.query(Address).filter(Address.user_email == email).delete()  # Delete existing addresses
+    existing_addresses = {address.address_id: address for address in user.addresses}
     for address in addresses:
-        db.add(Address(
-            user_email=email,
-            street=address["street"],
-            city=address["city"],
-            state=address["state"],
-            zip=address["zip"],
-            address_id=address["addressId"]
-        ))
+        if address["addressId"] in existing_addresses:
+            # Update existing address
+            existing_address = existing_addresses[address["addressId"]]
+            existing_address.street = address["street"]
+            existing_address.city = address["city"]
+            existing_address.state = address["state"]
+            existing_address.zip = address["zip"]
+        else:
+            # Add new address
+            db.add(Address(
+                user_email=email,
+                street=address["street"],
+                city=address["city"],
+                state=address["state"],
+                zip=address["zip"],
+                address_id=address["addressId"]
+            ))
 
     # Update credit cards
-    db.query(CreditCard).filter(CreditCard.user_email == email).delete()  # Delete existing credit cards
+    existing_credit_cards = {card.card_id: card for card in user.credit_cards}
     for card in credit_cards:
-        db.add(CreditCard(
-            user_email=email,
-            number=card["number"],
-            expiry=card["expiry"],
-            # cvv=card["cvv"],
-            billing_address_id=card["billingAddressId"],
-            card_id=card["cardId"]
-        ))
+        if card["cardId"] in existing_credit_cards:
+            # Update existing credit card
+            existing_card = existing_credit_cards[card["cardId"]]
+            existing_card.number = card["number"]
+            existing_card.expiry = card["expiry"]
+            existing_card.billing_address_id = card["billingAddressId"]
+        else:
+            # Add new credit card
+            db.add(CreditCard(
+                user_email=email,
+                number=card["number"],
+                expiry=card["expiry"],
+                billing_address_id=card["billingAddressId"],
+                card_id=card["cardId"]
+            ))
 
     db.commit()
 

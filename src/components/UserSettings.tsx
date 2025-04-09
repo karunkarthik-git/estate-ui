@@ -10,17 +10,24 @@ const UserSettings = () => {
         name: '',
         email: '',
         addresses: [{ street: '', city: '', state: '', zip: '', addressId: uuidv4() }],
-        credit_cards: [{ number: '', expiry: '', cvv: '', billingAddressId: '', cardId: uuidv4() }],
+        credit_cards: [{ number: '', expiry: '', billingAddressId: '', cardId: uuidv4(), isNew: true }], // Add `isNew` flag
     });
 
     useEffect(() => {
-        let data = localStorage.getItem("userInfo");
+        let data: any = localStorage.getItem("userInfo");
         if (data) {
             data = JSON.parse(data);
             setUserInfo(data);
-            setFormData(data);
+
+            // Mark existing credit cards as not new
+            const updatedCreditCards = data?.credit_cards?.map((card: any) => ({
+                ...card,
+                isNew: false, // Existing cards are not new
+            }));
+
+            setFormData({ ...data, credit_cards: updatedCreditCards });
         }
-    }, [])
+    }, []);
 
     const handleInputChange = (
         e: any,
@@ -51,7 +58,10 @@ const UserSettings = () => {
     const addCreditCard = () => {
         setFormData({
             ...formData,
-            credit_cards: [...formData.credit_cards, { number: '', expiry: '', cvv: '', billingAddressId: '', cardId: uuidv4() }],
+            credit_cards: [
+                ...formData.credit_cards,
+                { number: '', expiry: '', billingAddressId: '', cardId: uuidv4(), isNew: true }, // New card with `isNew: true`
+            ],
         });
     };
 
@@ -68,8 +78,14 @@ const UserSettings = () => {
     };
 
     const deleteCreditCard = (index: number) => {
-        const updatedCards = formData.credit_cards.filter((_: any, i: number) => i !== index);
-        setFormData({ ...formData, credit_cards: updatedCards });
+        const card = formData.credit_cards[index];
+        if (card.isNew) {
+            // Allow deletion of new cards
+            const updatedCards = formData.credit_cards.filter((_: any, i: number) => i !== index);
+            setFormData({ ...formData, credit_cards: updatedCards });
+        } else {
+            alert('Cannot delete credit cards already saved in the database.');
+        }
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -82,7 +98,10 @@ const UserSettings = () => {
             body: JSON.stringify({
                 email: formData.email,
                 addresses: formData.addresses,
-                credit_cards: formData.credit_cards
+                credit_cards: formData.credit_cards.map((card: any) => {
+                    const { isNew, ...cardData } = card; // Exclude `isNew` before sending to the backend
+                    return cardData;
+                }),
             }),
         })
             .then((response) => {
@@ -91,8 +110,7 @@ const UserSettings = () => {
                 } else {
                     throw new Error('Failed to update user details');
                 }
-            }
-            )
+            })
             .then((data) => {
                 alert('User details updated successfully');
                 getUserInfo(formData.email).then((response: any) => {
@@ -103,14 +121,11 @@ const UserSettings = () => {
                         alert('Error fetching updated user details');
                     }
                 });
-            }
-            )
+            })
             .catch((error) => {
                 console.error('Error:', error);
                 alert('Error updating user details');
-            }
-            );
-
+            });
     };
 
     return (
@@ -128,6 +143,7 @@ const UserSettings = () => {
                                     type="text"
                                     value={formData.name}
                                     onChange={(e) => handleInputChange(e, 'name')}
+                                    readOnly
                                 />
                             </Form.Group>
                             <Form.Group className="mb-3">
@@ -135,7 +151,7 @@ const UserSettings = () => {
                                 <Form.Control
                                     type="email"
                                     value={formData.email}
-                                    onChange={(e) => handleInputChange(e, 'email')}
+                                    readOnly
                                 />
                             </Form.Group>
                         </div>
@@ -213,14 +229,6 @@ const UserSettings = () => {
                                             onChange={(e) => handleInputChange(e, 'expiry', index, 'creditCard')}
                                         />
                                     </Form.Group>
-                                    {/* <Form.Group className="mb-3">
-                                    <Form.Label>CVV</Form.Label>
-                                    <Form.Control
-                                        type="text"
-                                        value={card.cvv}
-                                        onChange={(e) => handleInputChange(e, 'cvv', index, 'creditCard')}
-                                    />
-                                </Form.Group> */}
                                     <Form.Group className="mb-3">
                                         <Form.Label>Billing Address</Form.Label>
                                         <Form.Select
@@ -239,7 +247,7 @@ const UserSettings = () => {
                                         type="button"
                                         className="btn btn-danger mb-3"
                                         onClick={() => deleteCreditCard(index)}
-                                        disabled={formData.credit_cards.length <= 1}
+                                        disabled={!card.isNew} // Disable delete button for existing cards
                                     >
                                         Delete Credit Card
                                     </button>
